@@ -1,170 +1,103 @@
-# 📂 Mini File Server (Flask)
+# 📂 File Server (Astro + Flask)
 
-Servidor simple para **subir y descargar archivos desde cualquier dispositivo** (PC, celular, tablet) dentro de tu red local o desde internet con un túnel como ngrok.
+Este proyecto es un servidor para **subir y descargar archivos** de forma local o remota.
+Recientemente se ha reestructurado en dos partes:
+1. **Frontend**: Creado con Astro y Tailwind CSS (interfaz de usuario moderna).
+2. **Backend**: Creado con Flask (API REST para manejo de archivos).
 
 ---
 
 ## 🚀 Requisitos
 
-- Python 3.8 o superior instalado
-- Pip instalado
-- (Opcional) ngrok si querés exponer el servidor a internet
+- Node.js (para correr el Frontend en Astro)
+- Python 3.8 o superior (para correr el Backend en Flask)
 
 ---
 
-## 📦 Instalación
+## 🛠️ Estructura del Proyecto
 
-1. Abrir una terminal en la carpeta del proyecto
-2. Crear un entorno virtual (recomendado):
-
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux / macOS
-venv\Scripts\activate     # Windows
+```text
+/
+├── backend/
+│   ├── upload_server.py    # Servidor Flask (API)
+│   ├── files/              # Carpeta donde se guardan los archivos
+│   ├── requirements.txt    # Dependencias de Python
+│   └── venv/               # Entorno virtual de Python
+└── frontend/
+    ├── src/                # Código fuente de Astro (UI)
+    ├── package.json        # Dependencias de Node
+    └── astro.config.mjs    # Configuración de Astro y Tailwind
 ```
 
+---
+
+## 📦 Instalación y Ejecución
+
+### 1. Backend (Flask)
+
+1. Abrir una terminal en `backend/`:
+   ```bash
+   cd backend
+   ```
+2. Crear y activar un entorno virtual:
+   ```bash
+   python -m venv venv
+   # Windows:
+   venv\Scripts\activate
+   # Linux / macOS:
+   source venv/bin/activate
+   ```
 3. Instalar dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Ejecutar el servidor (correrá en `http://localhost:8000`):
+   ```bash
+   python upload_server.py
+   ```
 
+### 2. Frontend (Astro)
+
+1. Abrir otra terminal en `frontend/`:
+   ```bash
+   cd frontend
+   ```
+2. Instalar las dependencias de Node:
+   ```bash
+   npm install
+   ```
+3. Ejecutar el servidor de desarrollo (correrá en `http://localhost:4321`):
+   ```bash
+   npm run dev
+   ```
+   **Para acceder desde celulares u otras computadoras en tu red WiFi**, debes ejecutarlo con el flag `--host` para exponer la IP local:
+   ```bash
+   npm run dev -- --host
+   ```
+
+---
+
+## 🔐 Login y Seguridad
+
+El Backend (API) requiere autenticación básica HTTP para proteger la modificación de archivos.
+Las credenciales por defecto son:
+- **Usuario**: `dokaidevs`
+- **Contraseña**: `rollimussi2026`
+
+**Niveles de Acceso:**
+- **Público (Sin contraseña):** Descargar o ver un archivo específico si se conoce el enlace exacto (ej. `http://IP:8000/archivo.pdf`).
+- **Privado (Requiere contraseña):** Ver la lista completa de archivos, buscar, subir nuevos archivos y eliminarlos.
+
+Se pueden configurar usando variables de entorno antes de levantar el backend:
 ```bash
-python -m pip install -r requirements.txt
+export FILE_SERVER_USER="miusuario"
+export FILE_SERVER_PASSWORD="mipassword"
 ```
 
----
+## 🧠 Notas Adicionales
 
-## ▶️ Ejecutar el servidor
-
-```bash
-python upload_server.py
-```
-
-Deberías ver algo como:
-
-```
-Running on http://127.0.0.1:8000
-Running on http://192.168.X.X:8000
-```
-
----
-
-## 🌐 Acceder desde otros dispositivos
-
-Desde otra PC o celular en la misma red WiFi:
-
-```
-http://TU_IP:8000
-```
-
-Ejemplo:
-
-```
-http://192.168.0.22:8000
-```
-
----
-
-## 🔐 Login
-
-El servidor usa autenticación básica en HTTP.
-
-- Usuario: `dokaidevs` (por defecto)
-- Contraseña: `rollimussi2026` (por defecto)
-
-Podés personalizar estas credenciales con variables de entorno antes de ejecutar el servidor.
-
-Linux / macOS:
-
-```bash
-export FILE_SERVER_USER=miusuario
-export FILE_SERVER_PASSWORD=mipassword
-```
-
-Windows PowerShell:
-
-```powershell
-$Env:FILE_SERVER_USER = 'miusuario'
-$Env:FILE_SERVER_PASSWORD = 'mipassword'
-```
-
-Windows CMD:
-
-```cmd
-set FILE_SERVER_USER=miusuario
-set FILE_SERVER_PASSWORD=mipassword
-```
-
----
-
-## 📁 Funcionalidades
-
-- Subir archivos desde el navegador
-- Ver lista de archivos disponibles
-- Descargar archivos
-- Interfaz simple y usable en celular
-
----
-
-## 🌍 Acceso desde internet (opcional)
-
-Si querés exponerlo a internet, usá ngrok:
-
-```bash
-ngrok http 8000
-```
-
-Ngrok te dará una URL pública como:
-
-```
-https://xxxxx.ngrok-free.dev
-```
-
----
-
-## ⚠️ Seguridad
-
-- El servidor funciona **solo mientras la terminal esté abierta**.
-- Si apagás la PC, deja de funcionar.
-- La autenticación básica no cifra las credenciales cuando no se usa HTTPS.
-- Cualquiera con la contraseña puede subir archivos.
-- Si subís un archivo con el mismo nombre, el servidor guardará la nueva versión con un sufijo numérico para no sobrescribir el original.
-
----
-
-## 📂 Estructura
-
-```
-/proyecto
-│── upload_server.py
-│── /files   ← (se crea automáticamente)
-```
-
----
-
-## 🧠 Notas
-
-- Los archivos se guardan en la carpeta `files/`
-- Tamaño máximo permitido: 50MB
-- No se permite eliminar archivos desde la interfaz
-
----
-
-## 🔧 Posibles mejoras
-
-- Drag & drop
-- Barra de progreso
-- Usuarios múltiples
-- Vista previa de imágenes
-- HTTPS / certificados propios
-
----
-
-## ✅ Uso típico
-
-1. Ejecutás el servidor en tu PC
-2. Desde el celular entrás a la IP local
-3. Subís o descargás archivos sin cables ni apps
-
----
-
-## 🧾 Licencia
-
-Uso personal / educativo.
+- Tamaño máximo de subida: **500MB**.
+- Los archivos se guardan físicamente en `backend/files/`.
+- La interfaz se sincroniza automáticamente: si alguien sube un archivo desde un celular, la pantalla de la computadora se actualizará sola sin recargar la página.
+- Funcionalidad de descarga silenciosa: Los botones de descarga guardan el archivo nativamente sin abrir pestañas nuevas.
+- La API de Flask utiliza `Flask-Cors` para permitir solicitudes desde el Frontend en Astro sin problemas de puertos.
