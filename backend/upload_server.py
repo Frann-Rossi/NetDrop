@@ -5,6 +5,10 @@ from functools import wraps
 import os
 import math
 import datetime
+from dotenv import load_dotenv
+
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
 
 app = Flask(__name__)
 # Enable CORS for the frontend (Astro usually runs on localhost:4321, but we can allow all for now)
@@ -18,8 +22,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Aumentado a 500MB
 
-USERNAME = os.getenv("FILE_SERVER_USER", "dokaidevs")
-PASSWORD = os.getenv("FILE_SERVER_PASSWORD", "rollimussi2026")
+USERNAME = os.getenv("FILE_SERVER_USER","admin")
+PASSWORD = os.getenv("FILE_SERVER_PASSWORD", "1234")
 
 
 def get_unique_filename(filename):

@@ -2,7 +2,9 @@
 /backend/files
 /backend/venv
 /backend/__pycache__
+/backend/.env
 *.pyc
+.env
 
 # Frontend
 /frontend/dist/

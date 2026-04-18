@@ -1,9 +1,9 @@
-# 📂 File Server (Astro + Flask)
+# 📂 NetDrop
 
-Este proyecto es un servidor para **subir y descargar archivos** de forma local o remota.
-Recientemente se ha reestructurado en dos partes:
-1. **Frontend**: Creado con Astro y Tailwind CSS (interfaz de usuario moderna).
-2. **Backend**: Creado con Flask (API REST para manejo de archivos).
+**NetDrop** es un servidor rápido y seguro para **subir y descargar archivos** de forma local o remota.
+Está estructurado en dos partes modernas:
+1. **Frontend**: Creado con Astro y Tailwind CSS (interfaz de usuario moderna y súper rápida).
+2. **Backend**: Creado con Flask (API REST para el manejo seguro de archivos).
 
 ---
 
@@ -79,20 +79,22 @@ Recientemente se ha reestructurado en dos partes:
 
 ## 🔐 Login y Seguridad
 
-El Backend (API) requiere autenticación básica HTTP para proteger la modificación de archivos.
-Las credenciales por defecto son:
-- **Usuario**: `dokaidevs`
-- **Contraseña**: `rollimussi2026`
+El Backend (API) requiere autenticación básica HTTP para proteger la subida y modificación de archivos.
 
 **Niveles de Acceso:**
 - **Público (Sin contraseña):** Descargar o ver un archivo específico si se conoce el enlace exacto (ej. `http://IP:8000/archivo.pdf`).
 - **Privado (Requiere contraseña):** Ver la lista completa de archivos, buscar, subir nuevos archivos y eliminarlos.
 
-Se pueden configurar usando variables de entorno antes de levantar el backend:
-```bash
-export FILE_SERVER_USER="miusuario"
-export FILE_SERVER_PASSWORD="mipassword"
+### Configuración de Credenciales (`.env`)
+
+Para configurar tu usuario y contraseña de forma segura, debes crear un archivo llamado `.env` dentro de la carpeta `backend/` con este formato:
+
+```env
+FILE_SERVER_USER="miusuario"
+FILE_SERVER_PASSWORD="micontraseña"
 ```
+
+> **Nota:** Este archivo `.env` está incluido en el `.gitignore`, por lo que **nunca se subirá a GitHub** ni a ningún repositorio, manteniendo tus claves a salvo. Si por algún motivo se borra este archivo, el sistema tiene credenciales por defecto (`admin` / `1234`) para evitar que deje de funcionar.
 
 ## 🧠 Notas Adicionales
 
