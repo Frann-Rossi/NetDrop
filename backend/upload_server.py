@@ -25,6 +25,12 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # Aumentado a 500MB
 USERNAME = os.getenv("FILE_SERVER_USER","admin")
 PASSWORD = os.getenv("FILE_SERVER_PASSWORD", "1234")
 
+if USERNAME == "admin" and PASSWORD == "1234":
+    print("\n" + "="*50)
+    print("⚠️  WARNING: Usando credenciales por defecto (admin:1234).")
+    print("⚠️  Es muy recomendable configurar FILE_SERVER_USER y FILE_SERVER_PASSWORD en el archivo .env")
+    print("="*50 + "\n")
+
 
 def get_unique_filename(filename):
     base, ext = os.path.splitext(filename)
@@ -110,6 +116,7 @@ def index():
         files_data.append({
             'name': f,
             'size': get_readable_size(stats.st_size),
+            'size_bytes': stats.st_size,
             'timestamp': timestamp,
             'date': dt.strftime('%d/%m/%Y %H:%M'),
             'icon': get_file_icon(f),
@@ -148,4 +155,10 @@ def download_file(filename):
 
 # 🚀 RUN
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    print(f"🚀 Servidor corriendo en http://0.0.0.0:8000")
+    try:
+        from waitress import serve
+        serve(app, host="0.0.0.0", port=8000)
+    except ImportError:
+        print("⚠️ Waitress no está instalado. Instalalo usando 'pip install waitress' para producción.")
+        app.run(host="0.0.0.0", port=8000)

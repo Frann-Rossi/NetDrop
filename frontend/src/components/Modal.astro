@@ -1,0 +1,9 @@
+---
+// src/components/Modal.astro
+const { id, contentId, maxWidth = 'md' } = Astro.props;
+---
+<div id={id} class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+  <div class={`glass-card w-full max-w-${maxWidth} p-6 sm:p-8 rounded-3xl transform scale-95 transition-transform duration-300`} id={contentId}>
+    <slot />
+  </div>
+</div>

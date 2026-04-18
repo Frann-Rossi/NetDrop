@@ -7,9 +7,17 @@
     <h2 class="text-xl font-semibold flex items-center gap-2">
       <i class="fa-solid fa-hard-drive text-slate-400"></i> Mis Archivos
     </h2>
-    <div class="relative w-full sm:w-64">
-      <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-      <input type="text" id="searchInput" placeholder="Buscar..." class="w-full bg-slate-900/60 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-slate-500" />
+    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      <div class="relative w-full sm:w-64">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" id="searchInput" placeholder="Buscar..." class="w-full bg-slate-900/60 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-slate-500" />
+      </div>
+      <select id="sortSelect" class="w-full sm:w-auto bg-slate-900/60 border border-white/10 rounded-full py-2 px-4 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all text-slate-300">
+        <option value="date-desc">Más recientes</option>
+        <option value="date-asc">Más antiguos</option>
+        <option value="name-asc">Nombre (A-Z)</option>
+        <option value="size-desc">Tamaño (Mayor a Menor)</option>
+      </select>
     </div>
   </div>
 

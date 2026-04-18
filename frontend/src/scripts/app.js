@@ -6,65 +6,91 @@ const API_URL = `http://${window.location.hostname}:8000`;
 let filesData = [];
 let currentDataString = '';
 
+// Utilidad de Selectores
+const $ = id => document.getElementById(id);
+
+// Prevención XSS
+const escapeHTML = str => str.replace(/[&<>'"]/g, 
+  tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])
+);
+
 // DOM Elements
-const dropzone = document.getElementById('dropzone');
-const fileInput = document.getElementById('fileInput');
-const uploadProgress = document.getElementById('uploadProgress');
-const uploadStatusText = document.getElementById('uploadStatusText');
-const fileListContainer = document.getElementById('fileList');
-const filesLoading = document.getElementById('filesLoading');
-const filesEmpty = document.getElementById('filesEmpty');
-const searchInput = document.getElementById('searchInput');
-const toastContainer = document.getElementById('toastContainer');
+const dropzone = $('dropzone');
+const fileInput = $('fileInput');
+const uploadProgress = $('uploadProgress');
+const uploadStatusText = $('uploadStatusText');
+const fileListContainer = $('fileList');
+const filesLoading = $('filesLoading');
+const filesEmpty = $('filesEmpty');
+const searchInput = $('searchInput');
+const sortSelect = $('sortSelect');
+const toastContainer = $('toastContainer');
 
 // Login DOM
-const loginModal = document.getElementById('loginModal');
-const loginModalContent = document.getElementById('loginModalContent');
-const loginForm = document.getElementById('loginForm');
-const logoutBtn = document.getElementById('logoutBtn');
+const loginModal = $('loginModal');
+const loginModalContent = $('loginModalContent');
+const loginForm = $('loginForm');
+const logoutBtn = $('logoutBtn');
 
 // Delete Modal DOM
-const deleteModal = document.getElementById('deleteModal');
-const deleteModalContent = document.getElementById('deleteModalContent');
-const deleteFileName = document.getElementById('deleteFileName');
-const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const deleteModal = $('deleteModal');
+const deleteModalContent = $('deleteModalContent');
+const deleteFileName = $('deleteFileName');
+const cancelDeleteBtn = $('cancelDeleteBtn');
+const confirmDeleteBtn = $('confirmDeleteBtn');
 let fileToDelete = null;
 
 // ==========================================
-// AUTENTICACIÓN
+// FUNCIONES UI GLOBALES
 // ==========================================
-function getAuthHeader() {
-  const creds = localStorage.getItem('compartir_creds');
-  if (creds) {
-    return { 'Authorization': `Basic ${creds}` };
-  }
-  return {};
-}
-
-function showLogin() {
-  loginModal.classList.remove('hidden');
-  // Pequeño delay para la animación
+function showElement(el, contentEl = null) {
+  el.classList.remove('hidden');
   setTimeout(() => {
-    loginModal.classList.remove('opacity-0');
-    loginModalContent.classList.remove('scale-95');
+    el.classList.remove('opacity-0');
+    if (contentEl) contentEl.classList.remove('scale-95');
   }, 10);
 }
 
-function hideLogin() {
-  loginModal.classList.add('opacity-0');
-  loginModalContent.classList.add('scale-95');
+function hideElement(el, contentEl = null, callback = null) {
+  el.classList.add('opacity-0');
+  if (contentEl) contentEl.classList.add('scale-95');
   setTimeout(() => {
-    loginModal.classList.add('hidden');
+    el.classList.add('hidden');
+    if (callback) callback();
   }, 300);
 }
 
+// ==========================================
+// AUTENTICACIÓN Y API
+// ==========================================
+function getAuthHeader() {
+  const creds = localStorage.getItem('compartir_creds');
+  return creds ? { 'Authorization': `Basic ${creds}` } : {};
+}
+
+async function apiFetch(endpoint, options = {}) {
+  const headers = { ...getAuthHeader(), ...options.headers };
+  // No setear headers si está vacío para evitar overrides indeseados como en FormData
+  if (Object.keys(headers).length === 0) delete options.headers;
+  else options.headers = headers;
+
+  const res = await fetch(`${API_URL}${endpoint}`, options);
+  if (res.status === 401) {
+    localStorage.removeItem('compartir_creds');
+    showLogin();
+    throw new Error('Unauthorized');
+  }
+  return res;
+}
+
+const showLogin = () => showElement(loginModal, loginModalContent);
+const hideLogin = () => hideElement(loginModal, loginModalContent);
+
 loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  const user = document.getElementById('username').value;
-  const pass = document.getElementById('password').value;
-  const base64 = btoa(`${user}:${pass}`);
-  localStorage.setItem('compartir_creds', base64);
+  const user = $('username').value;
+  const pass = $('password').value;
+  localStorage.setItem('compartir_creds', btoa(`${user}:${pass}`));
   hideLogin();
   logoutBtn.classList.remove('hidden');
   fetchFiles(); // Re-intentar obtener archivos
@@ -85,7 +111,6 @@ if (!localStorage.getItem('compartir_creds')) {
 } else {
   logoutBtn.classList.remove('hidden');
   fetchFiles();
-  // Refrescar en segundo plano cada 5 segundos
   setInterval(() => fetchFiles(true), 5000);
 }
 
@@ -107,15 +132,10 @@ function showToast(message, type = 'success') {
   
   toastContainer.appendChild(toast);
   
-  // Animate in
-  requestAnimationFrame(() => {
-    toast.classList.remove('translate-x-full');
-  });
+  requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
   
-  // Auto remove
   setTimeout(() => {
-    toast.classList.add('translate-x-full');
-    toast.classList.add('opacity-0');
+    toast.classList.add('translate-x-full', 'opacity-0');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
@@ -131,19 +151,7 @@ async function fetchFiles(silent = false) {
   }
 
   try {
-    const res = await fetch(`${API_URL}/`, {
-      headers: getAuthHeader(),
-      cache: 'no-store'
-    });
-
-    if (res.status === 401) {
-      localStorage.removeItem('compartir_creds');
-      showLogin();
-      return;
-    }
-
-    if (!res.ok) throw new Error('Error al cargar archivos');
-
+    const res = await apiFetch('/', { cache: 'no-store' });
     const data = await res.json();
     const newDataString = JSON.stringify(data.files || []);
     
@@ -152,18 +160,16 @@ async function fetchFiles(silent = false) {
       filesData = data.files || [];
       renderFiles(searchInput.value);
     } else if (!silent) {
-      // Restaurar UI si era carga manual y no hay cambios
       filesLoading.classList.add('hidden');
-      if (filesData.length === 0) {
-        filesEmpty.classList.remove('hidden');
-      } else {
-        fileListContainer.classList.remove('hidden');
-      }
+      if (filesData.length === 0) filesEmpty.classList.remove('hidden');
+      else fileListContainer.classList.remove('hidden');
     }
   } catch (err) {
-    console.error(err);
-    showToast('No se pudo conectar con el servidor', 'error');
-    filesLoading.classList.add('hidden');
+    if (err.message !== 'Unauthorized') {
+      console.error(err);
+      showToast('No se pudo conectar con el servidor', 'error');
+      filesLoading.classList.add('hidden');
+    }
   }
 }
 
@@ -173,15 +179,19 @@ async function fetchFiles(silent = false) {
 function renderFiles(filterTerm = '') {
   filesLoading.classList.add('hidden');
   
-  const filtered = filesData.filter(f => f.name.toLowerCase().includes(filterTerm.toLowerCase()));
+  let filtered = filesData.filter(f => f.name.toLowerCase().includes(filterTerm.toLowerCase()));
+  
+  if (sortSelect) {
+    const sortVal = sortSelect.value;
+    if (sortVal === 'date-desc') filtered.sort((a, b) => b.timestamp - a.timestamp);
+    if (sortVal === 'date-asc') filtered.sort((a, b) => a.timestamp - b.timestamp);
+    if (sortVal === 'name-asc') filtered.sort((a, b) => a.name.localeCompare(b.name));
+    if (sortVal === 'size-desc') filtered.sort((a, b) => b.size_bytes - a.size_bytes);
+  }
   
   if (filtered.length === 0) {
     fileListContainer.classList.add('hidden');
-    if (filesData.length === 0) {
-      filesEmpty.querySelector('p').textContent = 'No hay archivos en el servidor';
-    } else {
-      filesEmpty.querySelector('p').textContent = 'No se encontraron resultados';
-    }
+    filesEmpty.querySelector('p').textContent = filesData.length === 0 ? 'No hay archivos en el servidor' : 'No se encontraron resultados';
     filesEmpty.classList.remove('hidden');
     filesEmpty.classList.add('flex');
     return;
@@ -198,29 +208,34 @@ function renderFiles(filterTerm = '') {
     fileCard.style.animationDelay = `${index * 50}ms`;
     
     const fileUrl = `${API_URL}${file.url}`;
+    const safeName = escapeHTML(file.name);
+    const safeUrl = escapeHTML(fileUrl);
+    const safeSize = escapeHTML(file.size);
+    const safeDate = escapeHTML(file.date);
+    const safeIcon = escapeHTML(file.icon);
 
     fileCard.innerHTML = `
       <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-cyan-900/40 transition-colors">
-        <i class="fa-solid ${file.icon} text-2xl text-cyan-400"></i>
+        <i class="fa-solid ${safeIcon} text-2xl text-cyan-400"></i>
       </div>
       <div class="flex-grow min-w-0">
-        <a href="${fileUrl}" target="_blank" class="block text-slate-200 font-medium truncate hover:text-cyan-400 transition-colors" title="${file.name}">
-          ${file.name}
+        <a href="${safeUrl}" target="_blank" class="block text-slate-200 font-medium truncate hover:text-cyan-400 transition-colors" title="${safeName}">
+          ${safeName}
         </a>
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-slate-500 mt-1">
-          <span class="whitespace-nowrap">${file.size}</span>
+          <span class="whitespace-nowrap">${safeSize}</span>
           <span class="hidden sm:inline">&bull;</span>
-          <span class="whitespace-nowrap">${file.date}</span>
+          <span class="whitespace-nowrap">${safeDate}</span>
         </div>
       </div>
       <div class="flex gap-2 shrink-0">
-        <button class="download-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 flex items-center justify-center transition-colors" title="Descargar" data-url="${fileUrl}" data-filename="${file.name}">
+        <button class="download-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 flex items-center justify-center transition-colors" title="Descargar" data-url="${safeUrl}" data-filename="${safeName}">
           <i class="fa-solid fa-download"></i>
         </button>
-        <button class="copy-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 flex items-center justify-center transition-colors" title="Copiar enlace" data-url="${fileUrl}">
+        <button class="copy-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 flex items-center justify-center transition-colors" title="Copiar enlace" data-url="${safeUrl}">
           <i class="fa-solid fa-link"></i>
         </button>
-        <button class="delete-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors" title="Eliminar" data-filename="${file.name}">
+        <button class="delete-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors" title="Eliminar" data-filename="${safeName}">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </div>
@@ -240,31 +255,22 @@ function renderFiles(filterTerm = '') {
 
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const url = e.currentTarget.getAttribute('data-url');
-      navigator.clipboard.writeText(url).then(() => {
-        showToast('Enlace copiado al portapapeles');
-      });
+      navigator.clipboard.writeText(e.currentTarget.getAttribute('data-url')).then(() => showToast('Enlace copiado al portapapeles'));
     });
   });
 
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const filename = e.currentTarget.getAttribute('data-filename');
-      fileToDelete = filename;
-      deleteFileName.textContent = filename;
-      deleteModal.classList.remove('hidden');
-      setTimeout(() => {
-        deleteModal.classList.remove('opacity-0');
-        deleteModalContent.classList.remove('scale-95');
-      }, 10);
+      fileToDelete = e.currentTarget.getAttribute('data-filename');
+      deleteFileName.textContent = fileToDelete;
+      showElement(deleteModal, deleteModalContent);
     });
   });
 }
 
-// Búsqueda
-searchInput.addEventListener('input', (e) => {
-  renderFiles(e.target.value);
-});
+// Búsqueda y Ordenamiento
+searchInput.addEventListener('input', (e) => renderFiles(e.target.value));
+if (sortSelect) sortSelect.addEventListener('change', () => renderFiles(searchInput.value));
 
 // ==========================================
 // DESCARGA SILENCIOSA
@@ -297,16 +303,7 @@ async function silentDownload(url, filename) {
 // ==========================================
 async function deleteFile(filename) {
   try {
-    const res = await fetch(`${API_URL}/delete/${encodeURIComponent(filename)}`, {
-      method: 'DELETE',
-      headers: getAuthHeader()
-    });
-    
-    if (res.status === 401) {
-      showLogin();
-      return;
-    }
-
+    const res = await apiFetch(`/delete/${encodeURIComponent(filename)}`, { method: 'DELETE' });
     const data = await res.json();
     if (data.success) {
       showToast(data.message);
@@ -316,19 +313,11 @@ async function deleteFile(filename) {
       showToast(data.error || 'Error al eliminar', 'error');
     }
   } catch (err) {
-    showToast('Error de conexión', 'error');
+    if (err.message !== 'Unauthorized') showToast('Error de conexión', 'error');
   }
 }
 
-function hideDeleteModal() {
-  deleteModal.classList.add('opacity-0');
-  deleteModalContent.classList.add('scale-95');
-  setTimeout(() => {
-    deleteModal.classList.add('hidden');
-    fileToDelete = null;
-  }, 300);
-}
-
+const hideDeleteModal = () => hideElement(deleteModal, deleteModalContent, () => { fileToDelete = null; });
 cancelDeleteBtn.addEventListener('click', hideDeleteModal);
 
 confirmDeleteBtn.addEventListener('click', async () => {
@@ -356,8 +345,7 @@ dropzone.addEventListener('dragover', (e) => {
 });
 
 dropzone.addEventListener('drop', (e) => {
-  const files = e.dataTransfer.files;
-  if (files.length > 0) handleUpload(files);
+  if (e.dataTransfer.files.length > 0) handleUpload(e.dataTransfer.files);
 });
 
 fileInput.addEventListener('change', () => {
@@ -371,47 +359,24 @@ async function handleUpload(fileList) {
   }
 
   const formData = new FormData();
-  for (let i = 0; i < fileList.length; i++) {
-    formData.append('files', fileList[i]);
-  }
+  for (let i = 0; i < fileList.length; i++) formData.append('files', fileList[i]);
 
-  // Mostrar UI de subida
-  uploadProgress.classList.remove('hidden');
-  // Pequeño delay para la animación
-  setTimeout(() => uploadProgress.classList.remove('opacity-0'), 10);
+  showElement(uploadProgress);
   
   try {
-    const res = await fetch(`${API_URL}/`, {
-      method: 'POST',
-      headers: getAuthHeader(), // NOTA: No setear Content-Type, fetch lo hace automático con FormData
-      body: formData
-    });
-
-    if (res.status === 401) {
-      showLogin();
-      hideUploadProgress();
-      return;
-    }
-
+    const res = await apiFetch('/', { method: 'POST', body: formData });
     const data = await res.json();
+    
     if (res.ok && data.success) {
       showToast(data.message);
-      fileInput.value = ''; // Limpiar input
-      await fetchFiles(); // Recargar lista
+      fileInput.value = '';
+      await fetchFiles();
     } else {
       showToast(data.error || 'Error al subir archivos', 'error');
     }
   } catch (err) {
-    console.error(err);
-    showToast('Error de conexión al subir', 'error');
+    if (err.message !== 'Unauthorized') showToast('Error de conexión al subir', 'error');
   } finally {
-    hideUploadProgress();
+    hideElement(uploadProgress);
   }
-}
-
-function hideUploadProgress() {
-  uploadProgress.classList.add('opacity-0');
-  setTimeout(() => {
-    uploadProgress.classList.add('hidden');
-  }, 300);
 }
