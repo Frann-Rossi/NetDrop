@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 import os
 import math
+import socket
 import datetime
 from dotenv import load_dotenv
 
@@ -139,6 +140,21 @@ def delete_file(filename):
         return jsonify({"success": True, "message": f"🗑️ Archivo '{filename}' eliminado."})
     else:
         return jsonify({"success": False, "error": "❌ No se encontró el archivo."}), 404
+
+
+# 🌐 INFO DE RED
+@app.route("/network-info", methods=["GET", "OPTIONS"])
+def network_info():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"})
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        local_ip = "No detectada"
+    return jsonify({"ip": local_ip})
 
 
 # 📥 DESCARGA / VER

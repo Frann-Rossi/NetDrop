@@ -10,6 +10,22 @@ import DeleteModal from '../components/DeleteModal.astro';
 
 <Layout>
   <Header />
+  <!-- Banner de IP para conectarse desde otros dispositivos -->
+  <div id="networkBanner" class="hidden mb-6 animate-slide-up" style="animation-delay: 100ms;">
+    <div class="glass-card rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3 border border-cyan-500/20">
+      <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-wifi text-cyan-400 text-lg"></i>
+      </div>
+      <div class="text-center sm:text-left flex-grow">
+        <p class="text-xs text-slate-400">Para acceder desde tu celular u otra PC en la misma WiFi, abrí:</p>
+        <p class="text-lg font-bold text-cyan-400 tracking-wide mt-0.5" id="networkUrl">...</p>
+      </div>
+      <button id="copyNetworkUrl" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 transition-colors text-sm flex items-center gap-2 shrink-0" title="Copiar enlace">
+        <i class="fa-solid fa-copy"></i>
+        <span class="sm:inline">Copiar</span>
+      </button>
+    </div>
+  </div>
   <ToastContainer />
   <UploadZone />
   <FileList />

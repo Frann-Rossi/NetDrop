@@ -6,6 +6,36 @@ const API_URL = `http://${window.location.hostname}:8000`;
 let filesData = [];
 let currentDataString = '';
 
+// Obtener y mostrar la IP de red para acceso desde otros dispositivos
+(async () => {
+  try {
+    const res = await fetch(`${API_URL}/network-info`);
+    const data = await res.json();
+    if (data.ip && data.ip !== 'No detectada') {
+      const networkUrl = `http://${data.ip}:4321`;
+      const networkBanner = document.getElementById('networkBanner');
+      const networkUrlEl = document.getElementById('networkUrl');
+      const copyBtn = document.getElementById('copyNetworkUrl');
+      if (networkBanner && networkUrlEl) {
+        networkUrlEl.textContent = networkUrl;
+        networkBanner.classList.remove('hidden');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(networkUrl).then(() => {
+              copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Copiado!</span>';
+              setTimeout(() => {
+                copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> <span>Copiar</span>';
+              }, 2000);
+            });
+          });
+        }
+      }
+    }
+  } catch (e) {
+    // Si falla, simplemente no mostramos el banner
+  }
+})();
+
 // Utilidad de Selectores
 const $ = id => document.getElementById(id);
 
