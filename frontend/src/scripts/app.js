@@ -5,6 +5,7 @@
 const API_URL = `http://${window.location.hostname}:8000`;
 let filesData = [];
 let currentDataString = '';
+let networkIp = ''; // Almacenar la IP para links compartibles
 
 // Obtener y mostrar la IP de red para acceso desde otros dispositivos
 (async () => {
@@ -15,18 +16,21 @@ let currentDataString = '';
       const networkUrl = `http://${data.ip}:4321`;
       const networkBanner = document.getElementById('networkBanner');
       const networkUrlEl = document.getElementById('networkUrl');
-      const copyBtn = document.getElementById('copyNetworkUrl');
+      const shareBtn = document.getElementById('shareNetworkUrl');
       if (networkBanner && networkUrlEl) {
+        networkIp = data.ip;
         networkUrlEl.textContent = networkUrl;
         networkBanner.classList.remove('hidden');
-        if (copyBtn) {
-          copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(networkUrl).then(() => {
-              copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Copiado!</span>';
-              setTimeout(() => {
-                copyBtn.innerHTML = '<i class="fa-solid fa-copy"></i> <span>Copiar</span>';
-              }, 2000);
-            });
+        
+        // QR Code para escaneo rápido
+        const qrImg = document.getElementById('networkQr');
+        if (qrImg) {
+          qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(networkUrl)}`;
+        }
+
+        if (shareBtn) {
+          shareBtn.addEventListener('click', () => {
+            shareLink(networkUrl, networkUrl);
           });
         }
       }
@@ -170,6 +174,50 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
+// Compartir o Copiar (Helper)
+async function shareLink(url, title = 'NetDrop') {
+  let finalUrl = url;
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.pathname === '/' && !url.endsWith('/')) finalUrl += '/';
+  } catch (e) {}
+
+  // 1. Intentar Share API (Requiere HTTPS en móviles)
+  if (navigator.share && window.isSecureContext) {
+    try {
+      await navigator.share({ title, text: finalUrl, url: finalUrl });
+      return;
+    } catch (err) {}
+  }
+
+  // 2. Intentar Clipboard API (Requiere HTTPS)
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(finalUrl);
+      showToast('Enlace copiado al portapapeles');
+      return;
+    } catch (err) {}
+  }
+
+  // 3. Fallback Universal (Funciona en HTTP / Celulares viejos)
+  try {
+    const textArea = document.createElement("textarea");
+    textArea.value = finalUrl;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    if (successful) showToast('Enlace copiado al portapapeles');
+    else throw new Error();
+  } catch (err) {
+    showToast('No se pudo copiar el enlace', 'error');
+  }
+}
+
 // ==========================================
 // FETCH ARCHIVOS
 // ==========================================
@@ -244,6 +292,14 @@ function renderFiles(filterTerm = '') {
     const safeDate = escapeHTML(file.date);
     const safeIcon = escapeHTML(file.icon);
 
+    // Si estamos en localhost, para compartir usamos la IP de red
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const shareUrl = (isLocalhost && networkIp) 
+      ? `http://${networkIp}:8000${file.url}` 
+      : fileUrl;
+    
+    const safeShareUrl = escapeHTML(shareUrl);
+
     fileCard.innerHTML = `
       <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-cyan-900/40 transition-colors">
         <i class="fa-solid ${safeIcon} text-2xl text-cyan-400"></i>
@@ -262,8 +318,8 @@ function renderFiles(filterTerm = '') {
         <button class="download-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 flex items-center justify-center transition-colors" title="Descargar" data-url="${safeUrl}" data-filename="${safeName}">
           <i class="fa-solid fa-download"></i>
         </button>
-        <button class="copy-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 flex items-center justify-center transition-colors" title="Copiar enlace" data-url="${safeUrl}">
-          <i class="fa-solid fa-link"></i>
+        <button class="share-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 flex items-center justify-center transition-colors" title="Compartir" data-url="${safeShareUrl}" data-filename="${safeName}">
+          <i class="fa-solid fa-share-nodes"></i>
         </button>
         <button class="delete-btn w-9 h-9 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors" title="Eliminar" data-filename="${safeName}">
           <i class="fa-solid fa-trash-can"></i>
@@ -283,9 +339,11 @@ function renderFiles(filterTerm = '') {
     });
   });
 
-  document.querySelectorAll('.copy-btn').forEach(btn => {
+  document.querySelectorAll('.share-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      navigator.clipboard.writeText(e.currentTarget.getAttribute('data-url')).then(() => showToast('Enlace copiado al portapapeles'));
+      const url = e.currentTarget.getAttribute('data-url');
+      const filename = e.currentTarget.getAttribute('data-filename');
+      shareLink(url, filename);
     });
   });
 
