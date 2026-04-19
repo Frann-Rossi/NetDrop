@@ -1,9 +1,27 @@
 ---
 // src/components/Modal.astro
+interface Props {
+  id: string;
+  contentId: string;
+  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+}
+
 const { id, contentId, maxWidth = 'md' } = Astro.props;
+
+// Mapeo explícito para que Tailwind detecte las clases en tiempo de compilación
+const widthClasses = {
+  'xs': 'max-w-xs',
+  'sm': 'max-w-sm',
+  'md': 'max-w-md',
+  'lg': 'max-w-lg',
+  'xl': 'max-w-xl',
+  '2xl': 'max-w-2xl'
+};
+
+const selectedWidth = widthClasses[maxWidth as keyof typeof widthClasses] || widthClasses['md'];
 ---
-<div id={id} class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-  <div class={`glass-card w-full max-w-${maxWidth} p-6 sm:p-8 rounded-3xl transform scale-95 transition-transform duration-300`} id={contentId}>
+<div id={id} class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center hidden opacity-0 transition-opacity duration-300 px-4">
+  <div class={`glass-card w-full ${selectedWidth} p-6 sm:p-8 rounded-3xl transform scale-95 transition-transform duration-300`} id={contentId}>
     <slot />
   </div>
 </div>
