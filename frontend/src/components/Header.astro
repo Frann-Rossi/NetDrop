@@ -1,22 +1,32 @@
 ---
 // src/components/Header.astro
+import ThemeToggle from './ThemeToggle.astro';
+import StorageBar from './StorageBar.astro';
 ---
-
-<header
-	class="flex justify-between items-center mb-10 animate-slide-up"
-	style="animation-delay: 0ms;"
->
-	<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight">
-		<span
-			class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
-			>NetDrop.</span
-		>
-	</h1>
-	<button
-		id="logoutBtn"
-		class="hidden text-slate-400 hover:text-white transition-colors duration-200"
-		title="Cerrar sesión"
-	>
-		<i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
-	</button>
+<header class="flex justify-between items-center mb-10 py-4 animate-slide-up">
+  <div class="flex flex-col gap-1">
+    <div class="flex items-center gap-2.5 group cursor-default">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-110 transition-transform">
+        <i class="fa-solid fa-cloud-arrow-up text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+          NetDrop <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-black border border-cyan-500/10">v2.0</span>
+        </h1>
+        <p class="text-[10px] text-app-text-dim uppercase tracking-[0.3em] font-bold">Transferencia Local</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="flex items-center gap-6 sm:gap-10">
+    <StorageBar />
+    
+    <div class="flex items-center gap-3">
+      <ThemeToggle />
+      <button id="logoutBtn" class="hidden px-5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-rose-500/10 text-app-text-dim hover:text-rose-400 font-bold text-xs uppercase tracking-widest border border-white/5 transition-all active:scale-95">
+        <i class="fa-solid fa-arrow-right-from-bracket sm:hidden text-lg"></i>
+        <span class="hidden sm:inline">Salir</span>
+      </button>
+    </div>
+  </div>
 </header>

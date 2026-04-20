@@ -1,17 +1,62 @@
 @import "tailwindcss";
 
+/* ACTIVACIÓN MODO OSCURO POR CLASE (Tailwind v4) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --animate-slide-up: slide-up 0.4s ease-out forwards;
-  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --color-app-accent: #38bdf8;
+
   @keyframes slide-up {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
 }
 
-@layer utilities {
-  .glass-card {
-    @apply bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl;
+/* Sincronización de Variables (Seguridad) */
+:root {
+  --bg-primary: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+}
+
+.dark {
+  --bg-primary: #020617;
+  --card-bg: #0d1117;
+  --text-main: #f8fafc;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    background-attachment: fixed;
+  }
+
+  /* Global Select/Option fix */
+  select, option {
+    @apply bg-white text-slate-900 border-slate-200;
+  }
+  
+  .dark select, .dark option {
+    @apply bg-slate-900 text-white border-slate-700;
   }
 }
+
+@layer utilities {
+  .solid-card {
+    @apply border rounded-[2.5rem] transition-all duration-300;
+    box-shadow: 0 10px 40px -15px rgba(15, 23, 42, 0.1);
+  }
+
+  .dark .solid-card {
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  }
+  
+  .file-item-media {
+    @apply w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden relative border;
+  }
+}
+
+/* Scrollbar Clear */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { @apply bg-slate-500/20 rounded-full hover:bg-slate-500/40; }

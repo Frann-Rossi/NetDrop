@@ -1,0 +1,34 @@
+---
+// src/components/BatchBar.astro
+---
+<div id="batchBar" class="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 translate-y-32 opacity-0 pointer-events-none w-[90%] sm:w-auto">
+  <div class="solid-card px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sm:justify-start gap-3 sm:gap-6 shadow-2xl border-app-accent/20">
+    <div class="flex items-center gap-2 sm:gap-3 sm:pr-4 sm:border-r border-white/10 shrink-0">
+      <div id="batchCount" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-app-accent text-white flex items-center justify-center font-black text-xs sm:text-sm">0</div>
+      <span class="text-[10px] sm:text-sm font-black uppercase tracking-widest hidden sm:block">Seleccionados</span>
+    </div>
+    
+    <div class="flex items-center gap-1.5 sm:gap-2 grow justify-end">
+      <button id="batchDownload" class="h-10 sm:h-auto p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-app-accent transition-all flex items-center gap-2 px-3 sm:px-4 group" title="Descargar como ZIP">
+        <i class="fa-solid fa-file-zipper text-sm"></i>
+        <span class="text-[10px] font-black uppercase tracking-tighter sm:tracking-wider">ZIP</span>
+      </button>
+      
+      <button id="batchDelete" class="h-10 sm:h-auto p-2 sm:p-2.5 rounded-xl bg-white/5 hover:bg-rose-500/20 text-rose-400 transition-all flex items-center gap-2 px-3 sm:px-4 group" title="Eliminar seleccionados">
+        <i class="fa-solid fa-trash-can text-sm"></i>
+        <span class="text-[10px] font-black uppercase tracking-tighter sm:tracking-wider">Borrar</span>
+      </button>
+      
+      <button id="batchClear" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 text-app-text-dim transition-all flex items-center justify-center shrink-0" title="Limpiar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="batchLoading" class="fixed inset-0 z-[110] bg-black/80 backdrop-blur-md flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+  <div class="flex flex-col items-center gap-4">
+    <div class="w-12 h-12 border-4 border-app-accent border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-white font-black text-xs uppercase tracking-[0.3em] animate-pulse">Procesando...</p>
+  </div>
+</div>

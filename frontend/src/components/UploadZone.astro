@@ -1,21 +1,52 @@
 ---
 // src/components/UploadZone.astro
 ---
-<!-- Upload Zone -->
-<section class="glass-card rounded-3xl p-8 mb-8 text-center border-dashed border-2 border-slate-700 hover:border-cyan-500 hover:bg-slate-800/50 transition-all duration-300 cursor-pointer group animate-slide-up relative overflow-hidden" id="dropzone" style="animation-delay: 100ms;">
-  <input type="file" id="fileInput" multiple accept="*/*" class="hidden" />
-  
-  <div class="pointer-events-none relative z-10 flex flex-col items-center justify-center py-6">
-    <div class="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-cyan-500/20 transition-all duration-500">
-      <i class="fa-solid fa-cloud-arrow-up text-4xl text-cyan-400 group-hover:text-cyan-300"></i>
+<section class="animate-slide-up mb-10" style="animation-delay: 100ms;">
+  <!-- Dropzone Card -->
+  <div class="solid-card bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-10 text-center border-dashed border-2 hover:border-app-accent hover:bg-slate-500/[0.03] transition-all cursor-pointer group relative overflow-hidden mb-6" id="dropzone">
+    <input type="file" id="fileInput" multiple class="hidden" />
+    <div class="pointer-events-none flex flex-col items-center">
+      <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <i class="fa-solid fa-upload text-3xl text-app-accent"></i>
+      </div>
+      <h2 class="text-xl font-bold mb-1 text-slate-900 dark:text-white">Carga de Archivos</h2>
+      <p class="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-widest font-black">Arrastra o haz clic para subir</p>
     </div>
-    <h2 class="text-xl font-semibold text-white mb-2">Haz clic o arrastra archivos aquí</h2>
-    <p class="text-slate-400 text-sm">Soporta múltiples archivos (Máx 500MB)</p>
+
+    <!-- Progress Overlay -->
+    <div id="uploadProgress" class="absolute inset-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center hidden opacity-0 transition-opacity">
+      <div class="w-12 h-12 border-4 border-slate-200 dark:border-white/5 border-t-app-accent rounded-full animate-spin mb-4"></div>
+      <p class="text-app-accent font-black text-xs uppercase tracking-widest animate-pulse">Transmitiendo...</p>
+    </div>
   </div>
 
-  <!-- Upload Progress Overlay -->
-  <div id="uploadProgress" class="absolute inset-0 bg-slate-900/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
-    <div class="w-16 h-16 border-4 border-slate-700 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
-    <p class="text-cyan-400 font-medium" id="uploadStatusText">Subiendo archivos...</p>
+  <!-- Options Card -->
+  <div class="solid-card bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-6 flex flex-wrap items-center gap-10 justify-center sm:justify-start">
+    <!-- Un Solo Uso -->
+    <label class="flex items-center gap-3 cursor-pointer group">
+      <div class="relative">
+        <input type="checkbox" id="oneTimeCheck" class="sr-only peer" />
+        <div class="w-11 h-6 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:bg-app-accent transition-colors"></div>
+        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all peer-checked:left-6"></div>
+      </div>
+      <span class="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300 group-hover:text-app-accent transition-colors">Descarga Única</span>
+    </label>
+
+    <!-- Auto-borrado -->
+    <div class="flex items-center gap-3">
+      <i class="fa-regular fa-clock text-slate-400 dark:text-slate-500 text-sm"></i>
+      <span class="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">Expiración:</span>
+      <select id="expireSelect" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs py-2 px-4 focus:outline-none focus:border-app-accent font-bold cursor-pointer text-slate-900 dark:text-white">
+        <option value="">Nunca</option>
+        <option value="1">1 minuto</option>
+        <option value="10">10 minutos</option>
+        <option value="60">1 hora</option>
+        <option value="1440">1 día</option>
+        <option value="custom">Otro...</option>
+      </select>
+      <div id="customExpireContainer" class="hidden animate-slide-up">
+        <input type="number" id="customExpireInput" min="1" placeholder="Mins" class="w-20 bg-slate-50 dark:bg-slate-800 border border-app-accent/30 rounded-xl text-xs py-2 px-3 focus:outline-none focus:border-app-accent font-bold text-slate-900 dark:text-white" />
+      </div>
+    </div>
   </div>
 </section>

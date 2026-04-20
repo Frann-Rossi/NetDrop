@@ -1,0 +1,15 @@
+---
+// src/components/StorageBar.astro
+---
+<div id="storageBar" class="hidden sm:flex flex-col gap-1.5 min-w-[120px]">
+  <div class="flex justify-between items-end text-[10px] uppercase tracking-wider font-bold">
+    <span class="text-app-text-dim">Almacenamiento</span>
+    <span id="storagePercent" class="text-app-accent">--%</span>
+  </div>
+  <div class="h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden border border-white/5">
+    <div id="storageProgress" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-1000" style="width: 0%"></div>
+  </div>
+  <div class="text-[9px] text-app-text-dim text-right font-medium">
+    <span id="storageFree">--</span> libres de <span id="storageTotal">--</span>
+  </div>
+</div>

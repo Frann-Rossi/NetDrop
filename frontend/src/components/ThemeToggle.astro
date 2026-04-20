@@ -1,0 +1,44 @@
+---
+// src/components/ThemeToggle.astro
+---
+<button id="themeToggle" class="w-10 h-10 rounded-xl bg-slate-500/10 hover:bg-slate-500/20 flex items-center justify-center transition-all border border-black/5 dark:border-white/5 active:scale-95" title="Cambiar Tema">
+  <i class="fa-solid fa-moon text-cyan-500 dark:text-cyan-400 text-lg" id="themeIcon"></i>
+</button>
+
+<script>
+  const toggle = document.getElementById('themeToggle');
+  const icon = document.getElementById('themeIcon');
+  
+  const updateTheme = (isDark: boolean) => {
+    // Aplicamos clase .dark para que Tailwind dark: funcione
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+    
+    if (icon) {
+      icon.className = isDark 
+        ? 'fa-solid fa-moon text-cyan-400 text-lg' 
+        : 'fa-solid fa-sun text-amber-500 text-lg';
+    }
+      
+    localStorage.setItem('netdrop_theme', isDark ? 'dark' : 'light');
+  };
+
+  // Initial state logic
+  const savedTheme = localStorage.getItem('netdrop_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isInitialDark = savedTheme ? (savedTheme === 'dark') : prefersDark;
+  
+  updateTheme(isInitialDark);
+
+  if (toggle && icon) {
+    toggle.addEventListener('click', () => {
+      const isCurrentlyDark = document.documentElement.classList.contains('dark');
+      updateTheme(!isCurrentlyDark);
+    });
+  }
+</script>

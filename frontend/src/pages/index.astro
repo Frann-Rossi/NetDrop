@@ -6,12 +6,17 @@ import UploadZone from '../components/UploadZone.astro';
 import FileList from '../components/FileList.astro';
 import LoginModal from '../components/LoginModal.astro';
 import DeleteModal from '../components/DeleteModal.astro';
+import Clipboard from '../components/Clipboard.astro';
+import PreviewModal from '../components/PreviewModal.astro';
+import BatchBar from '../components/BatchBar.astro';
+import BatchDeleteModal from '../components/BatchDeleteModal.astro';
 ---
 
 <Layout>
   <Header />
+  
   <!-- Banner de IP para conectarse desde otros dispositivos -->
-  <div id="networkBanner" class="hidden mb-8 animate-slide-up" style="animation-delay: 100ms;">
+  <div id="networkBanner" class="hidden mb-8 animate-slide-up" style="animation-delay: 150ms;">
     <div class="glass-card rounded-2xl p-6 border border-white/5">
       <div class="flex flex-col sm:flex-row items-center gap-6">
         <!-- Icono -->
@@ -21,7 +26,7 @@ import DeleteModal from '../components/DeleteModal.astro';
         
         <!-- Info Principal -->
         <div class="flex-grow text-center sm:text-left min-w-0">
-          <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black mb-1">Acceso Local</p>
+          <p class="text-[10px] uppercase tracking-[0.2em] text-app-text-dim font-black mb-1">Acceso Local</p>
           <p class="text-xl sm:text-2xl font-bold text-white break-all" id="networkUrl">...</p>
         </div>
 
@@ -38,11 +43,24 @@ import DeleteModal from '../components/DeleteModal.astro';
       </div>
     </div>
   </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+    <div class="xl:col-span-8">
+      <UploadZone />
+      <FileList />
+    </div>
+    
+    <div class="xl:col-span-4 space-y-8 sticky top-8">
+      <Clipboard />
+    </div>
+  </div>
+
+  <BatchBar />
+  <PreviewModal />
   <ToastContainer />
-  <UploadZone />
-  <FileList />
   <LoginModal />
   <DeleteModal />
+  <BatchDeleteModal />
 </Layout>
 
 <script src="../scripts/app.js"></script>
