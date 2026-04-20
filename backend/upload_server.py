@@ -93,10 +93,23 @@ def get_unique_filename(filename):
 def get_readable_size(size_bytes):
     if size_bytes == 0: return "0B"
     size_name = ("B", "KB", "MB", "GB")
+    size_bytes = float(size_bytes)
     i = int(math.floor(math.log(size_bytes, 1024)))
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return f"{s} {size_name[i]}"
+
+# 🗑️ Función de borrado diferido (en español)
+def delayed_delete(fname):
+    """Espera un tiempo y borra el archivo físicamente."""
+    time.sleep(10) # 10 segundos es suficiente para iniciar el stream
+    fpath = os.path.join(UPLOAD_FOLDER, fname)
+    if os.path.exists(fpath):
+        os.remove(fpath)
+        if fname in metadata:
+            del metadata[fname]
+        save_json(METADATA_FILE, metadata)
+        print(f"🧹 Archivo eliminado físicamente: {fname}")
 
 def get_file_icon(filename):
     ext = os.path.splitext(filename)[1].lower()
@@ -181,6 +194,10 @@ def index():
         # Check if file has special metadata
         file_meta = metadata.get(f, {})
         
+        # Skip files that are already "used" (single download already triggered)
+        if file_meta.get('used'):
+            continue
+            
         files_data.append({
             'name': f,
             'size': get_readable_size(stats.st_size),
@@ -189,7 +206,9 @@ def index():
             'date': dt.strftime('%d/%m/%Y %H:%M'),
             'icon': get_file_icon(f),
             'url': f"/{f}",
-            'ephemeral': bool(file_meta)
+            'ephemeral': bool(file_meta),
+            'one_time': file_meta.get('one_time', False),
+            'expires_at': file_meta.get('expires_at')
         })
 
     return jsonify({"files": files_data})
@@ -302,7 +321,20 @@ def download_zip():
         for name in filenames:
             filepath = os.path.join(UPLOAD_FOLDER, secure_filename(name))
             if os.path.isfile(filepath):
+                # Revisar si es de un solo uso
+                meta = metadata.get(name, {})
+                if meta.get('used'):
+                    continue
+                
                 zf.write(filepath, name)
+                
+                # Si es descarga única, marcar para borrar
+                if meta.get('one_time'):
+                    meta['used'] = True
+                    threading.Thread(target=delayed_delete, args=(name,)).start()
+    
+    # Guardar cambios en metadatos si hubo archivos de un solo uso
+    save_json(METADATA_FILE, metadata)
     
     memory_file.seek(0)
     return Response(
@@ -352,16 +384,6 @@ def download_file(filename):
             if confirm:
                 meta['used'] = True
                 save_json(METADATA_FILE, metadata)
-                
-                # Programar borrado físico real
-                def delayed_delete(fname):
-                    time.sleep(20) # Un poco más de tiempo para descargas pesadas
-                    fpath = os.path.join(UPLOAD_FOLDER, fname)
-                    if os.path.exists(fpath):
-                        os.remove(fpath)
-                        if fname in metadata: del metadata[fname]
-                        save_json(METADATA_FILE, metadata)
-                
                 threading.Thread(target=delayed_delete, args=(filename,)).start()
             
             return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=False)

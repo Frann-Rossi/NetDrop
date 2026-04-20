@@ -1,6 +1,6 @@
-// src/scripts/app.js (v13.0 - Total Sync Fix)
+// src/scripts/app.js (v13.0 - Fix Total Sync e Info de Red)
 // ==========================================
-// CONFIGURACIÓN Y ESTADO
+// CONFIGURACIÓN Y ESTADO INICIAL
 // ==========================================
 const API_URL = `http://${window.location.hostname}:8000`;
 let filesData = [];
@@ -9,7 +9,7 @@ let currentDataString = '';
 
 const $ = id => document.getElementById(id);
 
-// DOM Elements
+// Elementos del DOM
 const dropzone = $('dropzone');
 const fileInput = $('fileInput');
 const uploadProgress = $('uploadProgress');
@@ -20,18 +20,18 @@ const searchInput = $('searchInput');
 const sortSelect = $('sortSelect');
 const toastContainer = $('toastContainer');
 
-// Ephemeral DOM
+// Elementos de archivos Efímeros
 const oneTimeCheck = $('oneTimeCheck');
 const expireSelect = $('expireSelect');
 const customExpireContainer = $('customExpireContainer');
 const customExpireInput = $('customExpireInput');
 
-// Clipboard DOM
+// Elementos del Portapapeles
 const clipboardInput = $('clipboardInput');
 const sendClipboard = $('sendClipboard');
 const clipboardHistory = $('clipboardHistory');
 
-// Batch UI
+// Interfaz de acciones por Lote
 const batchBar = $('batchBar');
 const batchCount = $('batchCount');
 const batchDownload = $('batchDownload');
@@ -39,7 +39,7 @@ const batchDelete = $('batchDelete');
 const batchClear = $('batchClear');
 const batchLoading = $('batchLoading');
 
-// Modals
+// Modales del sistema
 const batchDeleteModal = $('batchDeleteModal');
 const batchDeleteModalContent = $('batchDeleteModalContent');
 const batchCountText = $('batchCountText');
@@ -68,7 +68,7 @@ const loginForm = $('loginForm');
 const logoutBtn = $('logoutBtn');
 
 // ==========================================
-// UI HELPERS
+// AYUDAS DE INTERFAZ (UI HELPERS)
 // ==========================================
 function showElement(el, contentEl = null) {
   if (!el) return;
@@ -95,7 +95,7 @@ const escapeHTML = str => str.replace(/[&<>'"]/g,
 );
 
 // ==========================================
-// API & AUTH
+// API Y AUTENTICACIÓN
 // ==========================================
 function getAuthHeader() {
   const creds = localStorage.getItem('compartir_creds');
@@ -137,7 +137,7 @@ if (logoutBtn) {
 }
 
 // ==========================================
-// NOTIFICATIONS
+// NOTIFICACIONES (TOASTS)
 // ==========================================
 function showToast(message, type = 'success') {
   const toast = document.createElement('div');
@@ -155,7 +155,7 @@ function showToast(message, type = 'success') {
 }
 
 // ==========================================
-// FILE LISTING (STABLE FLEX)
+// LISTADO DE ARCHIVOS (ESTABLE)
 // ==========================================
 async function refreshAll(silent = false) {
   if (!localStorage.getItem('compartir_creds')) return;
@@ -243,6 +243,17 @@ function renderFiles(filterTerm = '') {
          </a>`
       : `<i class="fa-solid ${file.icon} text-slate-400 dark:text-app-accent scale-75 md:scale-100 opacity-40 group-hover:opacity-100 transition-opacity"></i>`;
 
+    let ephemeralBadge = '';
+    let statusInfo = '';
+    if (file.one_time) {
+      ephemeralBadge = '<div class="absolute inset-x-0 bottom-0 bg-amber-500 text-[6px] md:text-[8px] font-bold py-0.5 md:py-1 text-center uppercase tracking-tighter text-white z-10">Único</div>';
+      statusInfo = '<span class="text-[8px] md:text-[10px] font-bold text-amber-500 uppercase tracking-wider bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 whitespace-nowrap">Descarga Única</span>';
+    } else if (file.expires_at) {
+      const timeLeft = Math.round((file.expires_at - (Date.now() / 1000)) / 60);
+      ephemeralBadge = '<div class="absolute inset-x-0 bottom-0 bg-rose-600 text-[6px] md:text-[8px] font-bold py-0.5 md:py-1 text-center uppercase tracking-tighter text-white z-10">Temporal</div>';
+      statusInfo = `<span class="text-[8px] md:text-[10px] font-bold text-rose-500 uppercase tracking-wider bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 whitespace-nowrap">Expira: ${timeLeft > 0 ? timeLeft + ' min' : 'ya'}</span>`;
+    }
+
     fileCard.innerHTML = `
       <div class="flex items-center gap-2 md:gap-5 shrink-0">
         <label class="cursor-pointer">
@@ -253,7 +264,7 @@ function renderFiles(filterTerm = '') {
         </label>
         <div class="file-item-media bg-slate-100 dark:bg-black/40 border-slate-200 dark:border-white/5 shadow-xl">
           ${mediaHtml}
-          ${file.ephemeral ? '<div class="absolute inset-x-0 bottom-0 bg-rose-600 text-[6px] md:text-[8px] font-bold py-0.5 md:py-1 text-center uppercase tracking-tighter md:tracking-widest text-white z-10">Efímero</div>' : ''}
+          ${ephemeralBadge}
         </div>
       </div>
 
@@ -264,7 +275,7 @@ function renderFiles(filterTerm = '') {
         <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
           <span class="text-[8px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800 w-fit whitespace-nowrap">${file.size}</span>
           <span class="text-[8px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800 w-fit hidden sm:block whitespace-nowrap">${file.date}</span>
-          <span class="text-[8px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800 w-fit block sm:hidden whitespace-nowrap">${file.date.split(' ')[0]}</span>
+          ${statusInfo}
         </div>
       </div>
 
@@ -309,6 +320,21 @@ function updateBatchBar() {
 
 if (batchClear) batchClear.onclick = () => { selectedFiles.clear(); renderFiles(searchInput.value); updateBatchBar(); };
 
+if (batchDownload) {
+  batchDownload.onclick = async () => {
+    showElement(batchLoading);
+    try {
+      const res = await apiFetch('/download-zip', { method: 'POST', body: JSON.stringify({ filenames: Array.from(selectedFiles) }) });
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'netdrop_batch.zip';
+      document.body.appendChild(a); a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (e) { showToast('Error al descargar ZIP', 'error'); } 
+    finally { hideElement(batchLoading); }
+  };
+}
+
 if (batchDelete) {
   batchDelete.onclick = () => {
     batchCountText.textContent = selectedFiles.size;
@@ -328,7 +354,7 @@ if (confirmBatchDeleteBtn) {
   };
 }
 
-// PREVIEW & UPLOAD
+// VISTA PREVIA Y SUBIDA
 function showPreview(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   const url = `${API_URL}${file.url}`;
@@ -387,11 +413,40 @@ async function silentDownload(url, filename, confirmUse = false) {
   } catch (err) { showToast('Fallo descarga', 'error'); }
 }
 
-// INIT
+// ==========================================
+// INFORMACIÓN DE RED (QR Y IP)
+// ==========================================
+async function initNetworkInfo() {
+  try {
+    const res = await fetch(`${API_URL}/network-info`);
+    const data = await res.json();
+    const url = `http://${data.ip}:4321`; // Puerto de Astro
+    
+    const banner = $('networkBanner');
+    const urlEl = $('networkUrl');
+    const qrEl = $('networkQr');
+    const shareBtn = $('shareNetworkUrl');
+    
+    if (urlEl) urlEl.textContent = url;
+    if (qrEl) qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
+    if (banner) showElement(banner);
+    
+    if (shareBtn) {
+      shareBtn.onclick = () => {
+        navigator.clipboard.writeText(url).then(() => showToast('Enlace de red copiado'));
+      };
+    }
+  } catch (e) {}
+}
+
+// INICIALIZACIÓN
 if (!localStorage.getItem('compartir_creds')) { 
   showLogin(); if (filesLoading) filesLoading.classList.add('hidden'); 
 } else { 
-  if (logoutBtn) logoutBtn.classList.remove('hidden'); refreshAll(); setInterval(() => refreshAll(true), 15000); 
+  if (logoutBtn) logoutBtn.classList.remove('hidden'); 
+  refreshAll(); 
+  initNetworkInfo(); // Restaurado
+  setInterval(() => refreshAll(true), 15000); 
 }
 
 if (dropzone) {
